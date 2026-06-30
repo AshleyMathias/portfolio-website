@@ -2,7 +2,7 @@
 
 Personal portfolio for **Ashley Mathias** — AI Engineer building production GenAI systems, RAG pipelines, multi-agent workflows, and enterprise automation platforms.
 
-Live site: deployed on Vercel (see repository deployments).
+**Live site:** [portfolio-website-tau-one-12.vercel.app](https://portfolio-website-tau-one-12.vercel.app)
 
 ## Highlights
 
