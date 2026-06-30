@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #09090b;
+  --color-surface: #111113;
+  --color-surface-elevated: #18181b;
+  --color-border: #27272a;
+  --color-border-subtle: #1f1f23;
+  --color-foreground: #fafafa;
+  --color-muted: #a1a1aa;
+  --color-muted-foreground: #71717a;
+  --color-accent: #3b82f6;
+  --color-accent-muted: #1d4ed8;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-node-api: #3b82f6;
+  --color-node-ai: #8b5cf6;
+  --color-node-data: #06b6d4;
+  --color-node-queue: #f59e0b;
+  --color-node-db: #10b981;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
+  --animate-flow: flow 2s linear infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes flow {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes coffee-steam-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scaleY(0.6);
+  }
+  30% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scaleY(1.1) translateX(4px);
+  }
+}
+
+.coffee-steam {
+  transform-origin: center bottom;
+  animation: coffee-steam-rise 2.8s ease-out infinite;
+}
+
+.coffee-steam-1 {
+  animation-delay: 0s;
+}
+
+.coffee-steam-2 {
+  animation-delay: 0.9s;
+}
+
+.coffee-steam-3 {
+  animation-delay: 1.7s;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+[id] {
+  scroll-margin-top: 5rem;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.grid-pattern {
+  background-image:
+    linear-gradient(to right, var(--color-border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-subtle) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.section-container {
+  @apply mx-auto w-full max-w-6xl px-6 md:px-8;
+}
+
+.glass-panel {
+  @apply rounded-xl border border-border bg-surface/80 backdrop-blur-sm;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-foreground to-muted bg-clip-text text-transparent;
+}
