@@ -9,6 +9,8 @@ import { ProjectsSection } from "@/components/sections/ProjectsSection";
 import { SkillsSection } from "@/components/sections/SkillsSection";
 import { ExperienceSection } from "@/components/sections/ExperienceSection";
 import { AboutSection } from "@/components/sections/AboutSection";
+import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
+import { BackToTop } from "@/components/ui/BackToTop";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 
 export default function HomePage() {
@@ -16,6 +18,7 @@ export default function HomePage() {
 
   return (
     <>
+      <ScrollProgressBar progress={scrollProgress} />
       <div className="grid-pattern fixed inset-0 z-0 opacity-20" aria-hidden="true" />
       <LivingArchitectureCanvas scrollProgress={scrollProgress} />
 
@@ -31,6 +34,8 @@ export default function HomePage() {
         </main>
         <Footer />
       </div>
+
+      <BackToTop />
     </>
   );
 }

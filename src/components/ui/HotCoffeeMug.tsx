@@ -5,14 +5,20 @@ import { motion } from "framer-motion";
 interface HotCoffeeMugProps {
   className?: string;
   compact?: boolean;
+  interactive?: boolean;
 }
 
-export function HotCoffeeMug({ className = "", compact = false }: HotCoffeeMugProps) {
+export function HotCoffeeMug({
+  className = "",
+  compact = false,
+  interactive = false,
+}: HotCoffeeMugProps) {
   return (
     <motion.div
-      className={`pointer-events-none select-none ${className}`}
+      className={`${interactive ? "pointer-events-auto cursor-pointer" : "pointer-events-none"} select-none ${className}`}
       animate={{ y: [0, -8, 0] }}
       transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      whileHover={interactive ? { scale: 1.06, rotate: -2 } : undefined}
       aria-hidden="true"
     >
       <svg

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://portfolio-website-tau-one-12.vercel.app"),
   title: "Ashley Mathias | AI Engineer",
   description:
     "AI Engineer building RAG pipelines, multi-agent platforms, and MCP architectures. Explore interactive system blueprints and production AI work.",
@@ -29,7 +30,19 @@ export const metadata: Metadata = {
     description:
       "Ashley Mathias — AI Engineer designing RAG systems, multi-agent workflows, and production AI architectures.",
     type: "website",
+    url: "/",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ashley Mathias | AI Engineer",
+    description:
+      "AI Engineer designing RAG systems, multi-agent workflows, and production AI architectures.",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
