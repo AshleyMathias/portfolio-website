@@ -10,6 +10,7 @@ const navItems = [
   { label: "Systems", href: "/#architecture", section: "architecture" },
   { label: "Projects", href: "/#projects", section: "projects" },
   { label: "GitHub", href: "/github", section: null },
+  { label: "Blog", href: "/blog", section: null },
   { label: "Skills", href: "/#skills", section: "skills" },
   { label: "Experience", href: "/#experience", section: "experience" },
   { label: "Philosophy", href: "/#about", section: "about" },
@@ -43,9 +44,9 @@ export function Navigation() {
     };
   }, [mobileOpen]);
 
-  const isActive = (section: string | null) => {
+  const isActive = (href: string, section: string | null) => {
     if (!mounted) return false;
-    if (section === null) return pathname === "/github";
+    if (section === null) return pathname === href;
     return isHome && activeSection === section;
   };
 
@@ -70,15 +71,17 @@ export function Navigation() {
             <li key={item.href}>
               <a
                 href={item.href}
-                aria-current={isActive(item.section) ? "page" : undefined}
+                aria-current={
+                  isActive(item.href, item.section) ? "page" : undefined
+                }
                 className={`relative rounded py-1 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-                  isActive(item.section)
+                  isActive(item.href, item.section)
                     ? "text-foreground"
                     : "text-muted hover:text-foreground"
                 }`}
               >
                 {item.label}
-                {isActive(item.section) && (
+                {isActive(item.href, item.section) && (
                   <motion.span
                     layoutId="nav-active"
                     className="absolute -bottom-0.5 left-0 h-px w-full bg-accent"
@@ -124,9 +127,11 @@ export function Navigation() {
                 <li key={item.href}>
                   <a
                     href={item.href}
-                    aria-current={isActive(item.section) ? "page" : undefined}
+                    aria-current={
+                      isActive(item.href, item.section) ? "page" : undefined
+                    }
                     className={`block rounded-lg px-3 py-3 text-sm transition-colors ${
-                      isActive(item.section)
+                      isActive(item.href, item.section)
                         ? "bg-surface text-foreground"
                         : "text-muted hover:bg-surface hover:text-foreground"
                     }`}

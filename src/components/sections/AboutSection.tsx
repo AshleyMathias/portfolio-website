@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 
 const principles = [
   {
@@ -30,11 +31,23 @@ export function AboutSection() {
   return (
     <section id="about" className="relative py-32">
       <div className="section-container">
-        <SectionHeader
-          label="Philosophy"
-          title="How I think about engineering"
-          description="AI Engineer building RAG systems, agentic workflows, and fine-tuned LLMs — I design architectures first, then ship production code."
-        />
+        <div className="mb-16 flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+          <SectionHeader
+            label="Philosophy"
+            title="How I think about engineering"
+            description="AI Engineer building RAG systems, agentic workflows, and fine-tuned LLMs — I design architectures first, then ship production code."
+            className="mb-0"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass-panel shrink-0 p-4"
+          >
+            <ProfileAvatar size="md" showLabel />
+          </motion.div>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           {principles.map((principle, i) => (

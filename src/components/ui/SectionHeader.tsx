@@ -2,11 +2,17 @@ interface SectionHeaderProps {
   label: string;
   title: string;
   description?: string;
+  className?: string;
 }
 
-export function SectionHeader({ label, title, description }: SectionHeaderProps) {
+export function SectionHeader({
+  label,
+  title,
+  description,
+  className = "",
+}: SectionHeaderProps) {
   return (
-    <div className="mb-16 max-w-2xl">
+    <div className={`mb-16 max-w-2xl ${className}`}>
       <p className="mb-3 font-mono text-xs tracking-widest text-muted-foreground uppercase">
         {label}
       </p>

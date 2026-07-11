@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { HotCoffeeMug } from "@/components/ui/HotCoffeeMug";
+import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 
 export function HeroSection() {
   return (
@@ -70,6 +71,7 @@ export function HeroSection() {
             transition={{ delay: 1.2, duration: 0.6 }}
             className="mt-20 flex flex-wrap items-center gap-3 font-mono text-xs text-muted-foreground"
           >
+            <ProfileAvatar size="sm" className="mr-1" />
             <Link
               href="/brew"
               aria-label="Open the secret Brew Lab"

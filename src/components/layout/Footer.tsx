@@ -1,10 +1,3 @@
-const statusItems = [
-  { label: "system.status", value: "operational", status: "success" as const },
-  { label: "location", value: "Pune, India", status: "success" as const },
-  { label: "role", value: "AI Engineer", status: "success" as const },
-  { label: "email", value: "ashleymathias100@gmail.com", status: "success" as const },
-];
-
 const contactLinks = [
   {
     label: "Email",
@@ -69,23 +62,6 @@ export function Footer() {
                 </a>
               ))}
             </div>
-          </div>
-        </div>
-
-        <div className="glass-panel mb-8 p-6 font-mono text-xs">
-          <p className="mb-4 text-muted-foreground">system.dashboard</p>
-          <div className="space-y-3">
-            {statusItems.map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <span className="text-muted-foreground">{item.label}</span>
-                <span className="flex items-center gap-2">
-                  {item.status === "success" && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                  )}
-                  <span className="text-foreground">{item.value}</span>
-                </span>
-              </div>
-            ))}
           </div>
         </div>
 
