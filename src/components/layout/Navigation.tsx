@@ -66,7 +66,7 @@ export function Navigation() {
           <span className="text-muted-foreground">~/</span>ashley.mathias
         </Link>
 
-        <ul className="hidden items-center gap-7 md:flex">
+        <ul className="hidden items-center gap-4 lg:flex xl:gap-7">
           {navItems.map((item) => (
             <li key={item.href}>
               <a
@@ -103,7 +103,7 @@ export function Navigation() {
 
         <button
           type="button"
-          className="flex flex-col gap-1.5 rounded p-1 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:hidden"
+          className="flex flex-col gap-1.5 rounded p-1 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none lg:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
@@ -120,7 +120,7 @@ export function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-b border-border bg-background/95 backdrop-blur-md md:hidden"
+            className="overflow-hidden border-b border-border bg-background/95 backdrop-blur-md lg:hidden"
           >
             <ul className="section-container flex flex-col gap-1 py-4">
               {navItems.map((item) => (

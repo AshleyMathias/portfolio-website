@@ -48,8 +48,36 @@ export function WorkflowGraph({ steps, states }: WorkflowGraphProps) {
   );
 
   return (
+    <div className="w-full">
+      <ol className="space-y-2 md:hidden">
+        {steps.map((step) => {
+          const state = states[step.id] ?? "idle";
+          const color = KIND_COLORS[step.kind];
+          return (
+            <li
+              key={step.id}
+              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/50 px-3 py-2"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm text-foreground">{step.label}</span>
+                {step.detail && (
+                  <span className="block font-mono text-[10px] text-muted-foreground">
+                    {step.detail}
+                  </span>
+                )}
+              </span>
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: state === "idle" ? "#3f3f46" : color }}
+                aria-hidden="true"
+              />
+            </li>
+          );
+        })}
+      </ol>
+
     <div
-      className="relative w-full overflow-x-auto"
+      className="relative hidden w-full overflow-x-auto md:block"
       style={{ minHeight }}
     >
       <div className="relative h-full w-full" style={{ minHeight }}>
@@ -168,6 +196,7 @@ export function WorkflowGraph({ steps, states }: WorkflowGraphProps) {
           );
         })}
       </div>
+    </div>
     </div>
   );
 }

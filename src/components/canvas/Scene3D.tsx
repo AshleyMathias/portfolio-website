@@ -6,10 +6,135 @@ import * as THREE from "three";
 import { subscribeScrollProgress } from "@/lib/scroll-signal";
 
 const RINGS = [
-  { label: "RAG", radius: 1.45, y: 0.9, count: 6, color: "#9ec1ff", speed: 0.18 },
-  { label: "Agents", radius: 2.15, y: 0.05, count: 3, color: "#c4b5fd", speed: -0.12 },
-  { label: "MCP", radius: 2.85, y: -0.8, count: 4, color: "#7dd3fc", speed: 0.1 },
+  { label: "RAG", radius: 1.45, y: 0.9, count: 8, color: "#9ec1ff", speed: 0.18 },
+  { label: "Agents", radius: 2.15, y: 0.05, count: 5, color: "#c4b5fd", speed: -0.12 },
+  { label: "MCP", radius: 2.85, y: -0.8, count: 6, color: "#7dd3fc", speed: 0.1 },
 ] as const;
+
+const FIELD_COLORS = ["#9ec1ff", "#c4b5fd", "#7dd3fc"] as const;
+const FIELD_COUNT = 84;
+
+function fieldPoints() {
+  const points: THREE.Vector3[] = [];
+  for (let i = 0; i < FIELD_COUNT; i++) {
+    const y = 1 - (i / (FIELD_COUNT - 1)) * 2;
+    const radius = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = i * Math.PI * (3 - Math.sqrt(5));
+    const spread = 3.4 + (i % 7) * 0.42;
+    points.push(
+      new THREE.Vector3(
+        Math.cos(theta) * radius * spread * 1.45,
+        y * spread * 0.62,
+        Math.sin(theta) * radius * spread * 0.85
+      )
+    );
+  }
+  return points;
+}
+
+function Field({
+  reduced,
+  narrow,
+  scrollRef,
+}: {
+  reduced: boolean;
+  narrow: boolean;
+  scrollRef: React.MutableRefObject<number>;
+}) {
+  const points = useMemo(fieldPoints, []);
+  const group = useRef<THREE.Group>(null);
+  const meshes = useRef<Array<THREE.InstancedMesh | null>>([]);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const web = useMemo(() => {
+    const positions: number[] = [];
+    points.forEach((point, index) => {
+      for (const step of [1, 8, 21]) {
+        const next = points[(index + step) % points.length];
+        if (point.distanceTo(next) > 1.85) continue;
+        positions.push(point.x, point.y, point.z, next.x, next.y, next.z);
+      }
+    });
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    return new THREE.LineSegments(
+      geometry,
+      new THREE.LineBasicMaterial({ color: "#8eb4ff", transparent: true, opacity: 0.22 })
+    );
+  }, [points]);
+
+  useEffect(() => {
+    return () => {
+      web.geometry.dispose();
+      (web.material as THREE.Material).dispose();
+    };
+  }, [web]);
+
+  useEffect(() => {
+    FIELD_COLORS.forEach((_, colorIndex) => {
+      const mesh = meshes.current[colorIndex];
+      if (!mesh) return;
+      let slot = 0;
+      points.forEach((point, index) => {
+        if (index % FIELD_COLORS.length !== colorIndex) return;
+        dummy.position.copy(point);
+        dummy.scale.setScalar(0.55 + (index % 5) * 0.16);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(slot, dummy.matrix);
+        slot += 1;
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+  }, [dummy, points]);
+
+  useFrame((state, delta) => {
+    const t = state.clock.elapsedTime;
+    if (group.current) {
+      group.current.rotation.y = reduced ? 0.2 : t * 0.04;
+      group.current.position.y = THREE.MathUtils.damp(
+        group.current.position.y,
+        0.2 - scrollRef.current * 0.35,
+        1.2,
+        delta
+      );
+    }
+    if (reduced) return;
+    FIELD_COLORS.forEach((_, colorIndex) => {
+      const mesh = meshes.current[colorIndex];
+      if (!mesh) return;
+      let slot = 0;
+      points.forEach((point, index) => {
+        if (index % FIELD_COLORS.length !== colorIndex) return;
+        const drift = Math.sin(t * 0.55 + index * 0.7) * 0.12;
+        dummy.position.set(point.x, point.y + drift, point.z);
+        dummy.scale.setScalar(0.45 + (index % 5) * 0.14 + Math.sin(t * 1.3 + index) * 0.18);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(slot, dummy.matrix);
+        slot += 1;
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+  });
+
+  const perColor = Math.ceil(FIELD_COUNT / FIELD_COLORS.length);
+
+  return (
+    <group ref={group} position={narrow ? [0, 1.6, 0] : [0.55, 0.1, 0]} scale={narrow ? 0.62 : 1}>
+      <primitive object={web} />
+      {FIELD_COLORS.map((color, colorIndex) => (
+        <instancedMesh
+          key={color}
+          ref={(node) => {
+            meshes.current[colorIndex] = node;
+          }}
+          args={[undefined, undefined, perColor]}
+        >
+          <octahedronGeometry args={[0.055, 0]} />
+          <meshBasicMaterial color={color} transparent opacity={0.72} />
+        </instancedMesh>
+      ))}
+    </group>
+  );
+}
 
 function labelTexture(text: string, color: string) {
   const canvas = document.createElement("canvas");
@@ -61,14 +186,18 @@ function Spoke({
 function Practice({
   scrollRef,
   reduced,
+  narrow,
 }: {
   scrollRef: React.MutableRefObject<number>;
   reduced: boolean;
+  narrow: boolean;
 }) {
   const root = useRef<THREE.Group>(null);
   const core = useRef<THREE.Mesh>(null);
   const rings = useRef<Array<THREE.Group | null>>([]);
   const packet = useRef<THREE.Mesh>(null);
+  const hops = useRef<Array<THREE.Mesh | null>>([]);
+  const scan = useRef<THREE.Mesh>(null);
   const sparks = useRef<Array<THREE.Mesh | null>>([]);
   const trail = useRef<Array<THREE.Mesh | null>>([]);
   const cards = useRef<Array<THREE.Mesh | null>>([]);
@@ -145,8 +274,27 @@ function Practice({
 
       sparks.current.forEach((spark, index) => {
         if (!spark) return;
-        place(t, (index + 1) * 0.33, spark.position);
+        place(t, (index + 1) * 0.2, spark.position);
       });
+
+      hops.current.forEach((hop, index) => {
+        if (!hop) return;
+        const phase = (Math.sin(t * 0.45 + index * 2.1) + 1) / 2;
+        const from = RINGS[index % RINGS.length];
+        const to = RINGS[(index + 1) % RINGS.length];
+        const radius = from.radius + (to.radius - from.radius) * phase;
+        const angle = t * (0.7 + index * 0.15) + index * 2.2;
+        hop.position.set(
+          Math.cos(angle) * radius,
+          from.y + (to.y - from.y) * phase,
+          Math.sin(angle) * radius
+        );
+      });
+
+      if (scan.current) {
+        scan.current.position.y = Math.sin(t * 0.55) * 1.15;
+        scan.current.rotation.z = t * 0.2;
+      }
     }
     state.camera.position.x = THREE.MathUtils.damp(
       state.camera.position.x,
@@ -157,18 +305,26 @@ function Practice({
   });
 
   return (
-    <group ref={root} position={[2.55, 1.15, 0]} scale={0.78}>
+    <group ref={root} position={narrow ? [0.15, 2.15, 0] : [2.35, 0.42, 0]} scale={narrow ? 0.5 : 0.92}>
       <mesh ref={core}>
         <octahedronGeometry args={[0.28, 0]} />
         <meshBasicMaterial color="#f4f7ff" />
+      </mesh>
+      <mesh>
+        <icosahedronGeometry args={[0.62, 1]} />
+        <meshBasicMaterial color="#dbeafe" wireframe transparent opacity={0.28} />
       </mesh>
       <mesh>
         <sphereGeometry args={[0.46, 16, 12]} />
         <meshBasicMaterial color="#8eb4ff" transparent opacity={0.08} depthWrite={false} />
       </mesh>
       <mesh rotation={[Math.PI / 2.4, 0.2, 0]}>
-        <torusGeometry args={[0.5, 0.01, 8, 48]} />
-        <meshBasicMaterial color="#dbeafe" transparent opacity={0.8} />
+        <torusGeometry args={[0.5, 0.012, 8, 64]} />
+        <meshBasicMaterial color="#dbeafe" transparent opacity={0.85} />
+      </mesh>
+      <mesh ref={scan} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[3.35, 0.006, 6, 80]} />
+        <meshBasicMaterial color="#e0e7ff" transparent opacity={0.45} />
       </mesh>
 
       {RINGS.map((ring, ringIndex) => (
@@ -224,7 +380,7 @@ function Practice({
               </group>
             );
           })}
-          <sprite position={[ring.radius + 0.15, ring.y + 0.28, 0]} scale={[1.15, 0.3, 1]}>
+          <sprite position={[ring.radius + 0.62, ring.y + 0.18, 0]} scale={[0.95, 0.24, 1]}>
             <spriteMaterial map={labels[ringIndex]} transparent depthWrite={false} />
           </sprite>
         </group>
@@ -254,15 +410,30 @@ function Practice({
           <meshBasicMaterial color="#dbeafe" transparent opacity={0.28} depthWrite={false} />
         </mesh>
       </mesh>
-      {[0, 1].map((index) => (
+      {[0, 1, 2, 3].map((index) => (
         <mesh
           key={index}
           ref={(node) => {
             sparks.current[index] = node;
           }}
         >
-          <sphereGeometry args={[0.04, 8, 6]} />
-          <meshBasicMaterial color={index === 0 ? "#c4b5fd" : "#7dd3fc"} />
+          <sphereGeometry args={[0.035, 8, 6]} />
+          <meshBasicMaterial color={["#c4b5fd", "#7dd3fc", "#9ec1ff", "#ffffff"][index]} />
+        </mesh>
+      ))}
+      {RINGS.map((ring, index) => (
+        <mesh
+          key={ring.label}
+          ref={(node) => {
+            hops.current[index] = node;
+          }}
+        >
+          <sphereGeometry args={[0.05, 10, 8]} />
+          <meshBasicMaterial color={ring.color} />
+          <mesh>
+            <sphereGeometry args={[0.12, 8, 6]} />
+            <meshBasicMaterial color={ring.color} transparent opacity={0.22} depthWrite={false} />
+          </mesh>
         </mesh>
       ))}
     </group>
@@ -273,6 +444,7 @@ export function Scene3D() {
   const scrollRef = useRef(0);
   const [reduced, setReduced] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [narrow, setNarrow] = useState(false);
 
   useEffect(() => subscribeScrollProgress((progress) => {
     scrollRef.current = progress;
@@ -285,9 +457,14 @@ export function Scene3D() {
     motion.addEventListener("change", sync);
     const onVisibility = () => setHidden(document.hidden);
     document.addEventListener("visibilitychange", onVisibility);
+    const compact = window.matchMedia("(max-width: 1023px)");
+    const syncCompact = () => setNarrow(compact.matches);
+    syncCompact();
+    compact.addEventListener("change", syncCompact);
     return () => {
       motion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", onVisibility);
+      compact.removeEventListener("change", syncCompact);
     };
   }, []);
 
@@ -302,7 +479,7 @@ export function Scene3D() {
         height: "100%",
         zIndex: 0,
         pointerEvents: "none",
-        opacity: 0.62,
+        opacity: narrow ? 0.42 : 0.82,
       }}
       dpr={1}
       frameloop={reduced ? "demand" : "always"}
@@ -310,8 +487,9 @@ export function Scene3D() {
       camera={{ position: [0.4, 0.45, 8.2], fov: 38, near: 0.1, far: 30 }}
       aria-hidden
     >
-      <fog attach="fog" args={["#09090b", 7, 16]} />
-      <Practice scrollRef={scrollRef} reduced={reduced} />
+      <fog attach="fog" args={["#09090b", 11, 24]} />
+      <Field scrollRef={scrollRef} reduced={reduced} narrow={narrow} />
+      <Practice scrollRef={scrollRef} reduced={reduced} narrow={narrow} />
     </Canvas>
   );
 }

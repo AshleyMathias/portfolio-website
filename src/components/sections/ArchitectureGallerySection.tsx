@@ -16,7 +16,7 @@ export function ArchitectureGallerySection() {
         <SectionHeader
           label="System Architecture"
           title="Enterprise system design"
-          description="Layered architecture views for production systems I've built — structured the way enterprise teams document platforms."
+          description="Each system is a modular rack. Turn it, then pull one module forward to see the part it plays."
         />
 
         <div className="mb-6 flex flex-wrap gap-2">

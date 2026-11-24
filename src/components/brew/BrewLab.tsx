@@ -190,7 +190,7 @@ export function BrewLab() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                <h2 className="mt-3 text-4xl font-medium tracking-tight md:text-6xl">
+                <h2 className="mt-3 text-3xl font-medium tracking-tight sm:text-4xl md:text-6xl">
                   {headline}
                 </h2>
                 <p className="mt-3 max-w-lg text-lg text-muted">{caption}</p>

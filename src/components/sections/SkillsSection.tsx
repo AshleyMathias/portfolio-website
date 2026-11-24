@@ -127,7 +127,7 @@ export function SkillsSection() {
                       {group}
                     </p>
                   )}
-                  <h3 className="text-4xl font-medium tracking-tight md:text-6xl">
+                  <h3 className="text-3xl font-medium tracking-tight break-words sm:text-4xl md:text-6xl">
                     {skill}
                   </h3>
                 </motion.div>

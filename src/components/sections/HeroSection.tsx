@@ -40,7 +40,7 @@ export function HeroSection() {
             AI Engineer · Pune, India
           </p>
 
-          <div className="@container relative mb-6 h-[200px] md:h-[248px]">
+          <div className="@container relative mb-6 h-[180px] sm:h-[210px] md:h-[248px]">
             <motion.div
               className="absolute inset-0 flex items-center"
               initial={false}
@@ -50,7 +50,7 @@ export function HeroSection() {
               }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             >
-              <h1 className="text-[clamp(2.5rem,9.2cqi,5.75rem)] leading-[1.12] font-medium tracking-tight">
+              <h1 className="text-[clamp(1.7rem,8cqi,5.75rem)] leading-[1.12] font-medium tracking-tight">
                 Hi, I&apos;m <span className="text-gradient">Ashley Mathias</span>
                 <br />
                 I design AI systems.
