@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { projects } from "@/data/projects";
+import { projects, type Project } from "@/data/projects";
 
-const FLOW_STEPS = [
+const CHAPTERS = [
   "Problem",
   "Architecture",
   "System Design",
@@ -15,9 +15,24 @@ const FLOW_STEPS = [
   "Results",
 ] as const;
 
+function chapterBody(project: Project, chapter: (typeof CHAPTERS)[number]) {
+  if (chapter === "Problem") return project.problem;
+  if (chapter === "Architecture") return project.architecture;
+  if (chapter === "System Design") return project.systemDesign;
+  return null;
+}
+
 export function ProjectsSection() {
-  const [activeId, setActiveId] = useState(projects[0].id);
-  const active = projects.find((p) => p.id === activeId)!;
+  const [projectId, setProjectId] = useState(projects[0].id);
+  const [chapter, setChapter] = useState(0);
+  const project = projects.find((item) => item.id === projectId) ?? projects[0];
+  const step = CHAPTERS[chapter];
+  const prose = chapterBody(project, step);
+
+  const openProject = (id: string) => {
+    setProjectId(id);
+    setChapter(0);
+  };
 
   return (
     <section id="projects" className="relative py-32">
@@ -25,7 +40,7 @@ export function ProjectsSection() {
         <SectionHeader
           label="Projects"
           title="Engineered systems, not just features"
-          description="Production systems from my resume — workflow automation, incident resolution, document parsing, test automation, and NLP-to-SQL analytics. Open-source repos on the GitHub page."
+          description="Open a system, then walk it one chapter at a time — from the problem through to what shipped."
         />
 
         <div className="mb-8">
@@ -38,127 +53,130 @@ export function ProjectsSection() {
           </Link>
         </div>
 
-        <div className="mb-12 flex flex-wrap gap-2">
-          {projects.map((project) => (
-            <button
-              key={project.id}
-              type="button"
-              onClick={() => setActiveId(project.id)}
-              className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
-                activeId === project.id
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted hover:border-muted hover:text-foreground"
-              }`}
-            >
-              {project.title}
-            </button>
-          ))}
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+          {projects.map((item, index) => {
+            const selected = item.id === project.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => openProject(item.id)}
+                className={`shrink-0 rounded-lg border px-4 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+                  selected
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-muted hover:text-foreground"
+                }`}
+              >
+                <span className="block font-mono text-[10px] tracking-widest uppercase opacity-70">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="mt-1 block text-sm font-medium">{item.title}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeId}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <p className="mb-8 font-mono text-sm text-accent">{active.tagline}</p>
+        <article className="glass-panel relative min-h-[22rem] overflow-hidden p-6 md:p-10">
+          <p className="font-mono text-xs tracking-widest text-accent uppercase">
+            {project.tagline}
+          </p>
 
-            <div className="relative">
-              <div className="absolute top-0 bottom-0 left-4 w-px bg-border md:left-6" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${project.id}-${step}`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8"
+            >
+              <p className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+                chapter {String(chapter + 1).padStart(2, "0")} / 06
+              </p>
+              <h3 className="mt-3 text-3xl font-medium tracking-tight md:text-5xl">
+                {step}
+              </h3>
 
-              <div className="space-y-8">
-                <FlowStep step={FLOW_STEPS[0]} index={0}>
-                  <p className="leading-relaxed text-muted">{active.problem}</p>
-                </FlowStep>
+              {prose && (
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">{prose}</p>
+              )}
 
-                <FlowStep step={FLOW_STEPS[1]} index={1}>
-                  <p className="leading-relaxed text-muted">{active.architecture}</p>
-                </FlowStep>
+              {step === "Technologies" && (
+                <ul className="mt-6 flex max-w-2xl flex-wrap gap-2">
+                  {project.technologies.map((tech) => (
+                    <li
+                      key={tech}
+                      className="rounded-md border border-border px-3 py-1 font-mono text-xs text-muted"
+                    >
+                      {tech}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                <FlowStep step={FLOW_STEPS[2]} index={2}>
-                  <p className="leading-relaxed text-muted">{active.systemDesign}</p>
-                </FlowStep>
+              {step === "Challenges" && (
+                <ul className="mt-6 max-w-2xl space-y-3">
+                  {project.challenges.map((item) => (
+                    <li key={item} className="flex gap-3 text-muted">
+                      <span className="text-warning">△</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                <FlowStep step={FLOW_STEPS[3]} index={3}>
-                  <div className="flex flex-wrap gap-2">
-                    {active.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="rounded-md border border-border px-3 py-1 font-mono text-xs text-muted"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </FlowStep>
+              {step === "Results" && (
+                <ul className="mt-6 max-w-2xl space-y-3">
+                  {project.results.map((item) => (
+                    <li key={item} className="flex gap-3 text-muted">
+                      <span className="text-success">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
-                <FlowStep step={FLOW_STEPS[4]} index={4}>
-                  <ul className="space-y-2">
-                    {active.challenges.map((c) => (
-                      <li key={c} className="flex gap-2 text-sm text-muted">
-                        <span className="text-warning">△</span>
-                        {c}
-                      </li>
-                    ))}
-                  </ul>
-                </FlowStep>
-
-                <FlowStep step={FLOW_STEPS[5]} index={5}>
-                  <ul className="space-y-2">
-                    {active.results.map((r) => (
-                      <li key={r} className="flex gap-2 text-sm text-muted">
-                        <span className="text-success">✓</span>
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                </FlowStep>
-              </div>
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label="Case chapters">
+              {CHAPTERS.map((name, index) => (
+                <button
+                  key={name}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === chapter}
+                  onClick={() => setChapter(index)}
+                  className={`rounded-full border px-3 py-1.5 font-mono text-[10px] tracking-wide uppercase transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+                    index === chapter
+                      ? "border-accent bg-accent/10 text-foreground"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
             </div>
 
-            {active.githubUrl && (
-              <div className="mt-10">
-                <a
-                  href={active.githubUrl}
-                  className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm transition-colors hover:border-muted hover:bg-surface"
-                >
-                  View on GitHub →
-                </a>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+            <button
+              type="button"
+              onClick={() => setChapter((current) => (current + 1) % CHAPTERS.length)}
+              className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {chapter === CHAPTERS.length - 1 ? "Back to the problem" : "Next chapter"} →
+            </button>
+          </div>
+
+          {project.githubUrl && (
+            <a
+              href={project.githubUrl}
+              className="mt-6 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
+            >
+              View on GitHub →
+            </a>
+          )}
+        </article>
       </div>
     </section>
-  );
-}
-
-function FlowStep({
-  step,
-  index,
-  children,
-}: {
-  step: string;
-  index: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -12 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
-      className="relative pl-12 md:pl-16"
-    >
-      <div className="absolute top-1 left-2.5 flex h-3 w-3 items-center justify-center rounded-full border border-border bg-background md:left-4.5">
-        <div className="h-1.5 w-1.5 rounded-full bg-accent" />
-      </div>
-      <h3 className="mb-2 font-mono text-xs tracking-widest text-muted-foreground uppercase">
-        {step}
-      </h3>
-      {children}
-    </motion.div>
   );
 }

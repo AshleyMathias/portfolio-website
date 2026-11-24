@@ -48,8 +48,8 @@ export function BlogHero() {
         </h1>
 
         <p className="text-lg leading-relaxed text-muted">
-          Writing about AI, engineering, system design, and the lessons learned
-          while building real-world intelligent systems.
+          One essay on stage at a time. Pick from the index, or move with the
+          arrow keys — then open the original on Medium or Prompt Architect.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted-foreground">

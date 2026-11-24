@@ -1,6 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+
+const FloatingMug = dynamic(
+  () => import("@/components/ui/FloatingMug").then((mod) => mod.FloatingMug),
+  { ssr: false }
+);
 
 interface HotCoffeeMugProps {
   className?: string;
@@ -16,11 +22,13 @@ export function HotCoffeeMug({
   return (
     <motion.div
       className={`${interactive ? "pointer-events-auto cursor-pointer" : "pointer-events-none"} select-none ${className}`}
-      animate={{ y: [0, -8, 0] }}
+      animate={compact ? { y: [0, -8, 0] } : undefined}
       transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      whileHover={interactive ? { scale: 1.06, rotate: -2 } : undefined}
+      whileHover={interactive ? { scale: 1.04, rotate: -1 } : undefined}
       aria-hidden="true"
     >
+      {compact ? null : <FloatingMug />}
+      {compact ? (
       <svg
         width="120"
         height="140"
@@ -109,6 +117,7 @@ export function HotCoffeeMug({
           opacity="0.5"
         />
       </svg>
+      ) : null}
 
       <p
         className={`mt-2 text-center font-mono text-[10px] tracking-wider text-muted-foreground/60 ${compact ? "hidden" : ""}`}

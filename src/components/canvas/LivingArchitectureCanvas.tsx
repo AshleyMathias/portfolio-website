@@ -2,19 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { NeuralWorkflowEngine } from "@/lib/neural-workflow";
+import { readIsScrolling, readScrollProgress, subscribeScrollProgress } from "@/lib/scroll-signal";
 
-interface LivingArchitectureCanvasProps {
-  scrollProgress: number;
-}
-
-export function LivingArchitectureCanvas({
-  scrollProgress,
-}: LivingArchitectureCanvasProps) {
+export function LivingArchitectureCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<NeuralWorkflowEngine | null>(null);
-  const scrollRef = useRef(scrollProgress);
-
-  scrollRef.current = scrollProgress;
+  const scrollRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -29,12 +22,17 @@ export function LivingArchitectureCanvas({
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const unsubScroll = subscribeScrollProgress((progress) => {
+      scrollRef.current = progress;
+    });
+    scrollRef.current = readScrollProgress();
+
+    let dpr = 1;
 
     const resize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = 1;
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;
@@ -58,6 +56,7 @@ export function LivingArchitectureCanvas({
 
     if (prefersReduced) {
       return () => {
+        unsubScroll();
         window.removeEventListener("resize", onResize);
       };
     }
@@ -70,11 +69,12 @@ export function LivingArchitectureCanvas({
 
     const loop = (now: number) => {
       if (!running) return;
-      const dt = Math.min(now - last, 48); // clamp long frames (tab switch)
+      raf = requestAnimationFrame(loop);
+      if (readIsScrolling() || now - last < 40) return;
+      const dt = Math.min(now - last, 64);
       last = now;
       engine.setScroll(scrollRef.current);
       engine.render(ctx, now, dt);
-      raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
 
@@ -93,6 +93,7 @@ export function LivingArchitectureCanvas({
     return () => {
       running = false;
       cancelAnimationFrame(raf);
+      unsubScroll();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onMove);
       document.removeEventListener("visibilitychange", onVisibility);

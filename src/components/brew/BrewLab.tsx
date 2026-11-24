@@ -32,6 +32,17 @@ export function BrewLab() {
 
   const doneCount = Object.values(states).filter((s) => s === "done").length;
   const progress = doneCount / recipe.steps.length;
+  const running = recipe.steps.find((step) => states[step.id] === "running");
+  const latest =
+    running ??
+    [...recipe.steps].reverse().find((step) => states[step.id] === "done");
+  const headline = phase === "brewing" ? (latest?.label ?? recipe.name) : recipe.name;
+  const caption =
+    phase === "done"
+      ? recipe.result.notes.join(" · ")
+      : phase === "brewing"
+        ? (latest?.detail ?? recipe.tagline)
+        : recipe.tagline;
 
   const brew = useCallback((r: Recipe) => {
     clearTimers();
@@ -136,92 +147,103 @@ export function BrewLab() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        {/* workflow panel */}
-        <div className="glass-panel overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border bg-surface/60 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-            </div>
-            <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-              brew.workflow — {recipe.id}
-            </p>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              {recipe.time}
-            </span>
+      <div className="glass-panel overflow-hidden">
+        <div className="h-px bg-border">
+          <div
+            className="h-px bg-accent transition-[width] duration-500 ease-out"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between border-b border-border bg-surface/60 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          </div>
+          <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+            brew.workflow — {recipe.id}
+          </p>
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {recipe.time}
+          </span>
+        </div>
+
+        <div className="grid items-center gap-2 px-4 py-6 md:grid-cols-[240px_minmax(0,1fr)] md:px-8">
+          <div className="flex justify-center">
+            <CoffeeCup recipe={recipe} progress={progress} done={phase === "done"} />
           </div>
 
-          <div className="p-4 md:p-6">
-            <p className="mb-6 text-sm text-muted">{recipe.tagline}</p>
-            <WorkflowGraph steps={recipe.steps} states={states} />
-          </div>
-
-          <div className="flex items-center justify-between border-t border-border bg-surface/40 px-4 py-3">
-            <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
-              <span
-                className={`inline-block h-1.5 w-1.5 rounded-full ${
-                  phase === "brewing"
-                    ? "animate-pulse bg-warning"
-                    : phase === "done"
-                      ? "bg-success"
-                      : "bg-muted-foreground"
-                }`}
-              />
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
               {phase === "brewing"
-                ? "executing…"
+                ? `step ${String(doneCount + 1).padStart(2, "0")} / ${String(recipe.steps.length).padStart(2, "0")}`
                 : phase === "done"
-                  ? "brew complete"
-                  : "ready"}
-              <span className="text-border">|</span>
-              {doneCount}/{recipe.steps.length} steps
-            </div>
-            <button
-              type="button"
-              onClick={() => brew(recipe)}
-              disabled={phase === "brewing"}
-              className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {phase === "brewing" ? "Brewing…" : "Brew ☕"}
-            </button>
+                  ? "poured"
+                  : "standing by"}
+            </p>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${recipe.id}-${headline}`}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <h2 className="mt-3 text-4xl font-medium tracking-tight md:text-6xl">
+                  {headline}
+                </h2>
+                <p className="mt-3 max-w-lg text-lg text-muted">{caption}</p>
+              </motion.div>
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {phase === "done" && (
+                <motion.div
+                  key="signs"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-6 max-w-lg space-y-4"
+                >
+                  <Signs recipe={recipe} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* cup + signs panel */}
-        <div className="glass-panel flex flex-col items-center p-6">
-          <CoffeeCup recipe={recipe} progress={progress} done={phase === "done"} />
+        <div className="border-t border-border px-4 py-6 md:px-8">
+          <WorkflowGraph steps={recipe.steps} states={states} />
+        </div>
 
-          <div className="mt-4 text-center">
-            <p className="text-lg font-medium">{recipe.name}</p>
-            <p className="text-xs text-muted-foreground">{recipe.result.volume}</p>
+        <div className="flex items-center justify-between border-t border-border bg-surface/40 px-4 py-3">
+          <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+            <span
+              className={`inline-block h-1.5 w-1.5 rounded-full ${
+                phase === "brewing"
+                  ? "animate-pulse bg-warning"
+                  : phase === "done"
+                    ? "bg-success"
+                    : "bg-muted-foreground"
+              }`}
+            />
+            {phase === "brewing"
+              ? "executing…"
+              : phase === "done"
+                ? "brew complete"
+                : "ready"}
+            <span className="text-border">|</span>
+            {doneCount}/{recipe.steps.length} steps
           </div>
-
-          <AnimatePresence mode="wait">
-            {phase === "done" ? (
-              <motion.div
-                key="signs"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="mt-6 w-full space-y-4"
-              >
-                <Signs recipe={recipe} />
-              </motion.div>
-            ) : (
-              <motion.p
-                key="hint"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="mt-6 text-center font-mono text-[11px] text-muted-foreground"
-              >
-                {phase === "brewing"
-                  ? "the signs will appear once it's poured…"
-                  : "hit Brew to reveal the signs"}
-              </motion.p>
-            )}
-          </AnimatePresence>
+          <button
+            type="button"
+            onClick={() => brew(recipe)}
+            disabled={phase === "brewing"}
+            className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {phase === "brewing" ? "Brewing…" : phase === "done" ? "Brew again" : "Brew"}
+          </button>
         </div>
       </div>
     </div>

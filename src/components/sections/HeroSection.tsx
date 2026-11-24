@@ -2,21 +2,30 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { HotCoffeeMug } from "@/components/ui/HotCoffeeMug";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 
+const HeroTitle3D = dynamic(
+  () => import("@/components/ui/HeroTitle3D").then((mod) => mod.HeroTitle3D),
+  { ssr: false }
+);
+
 export function HeroSection() {
+  const [titleReady, setTitleReady] = useState(false);
+
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
       <Link
         href="/brew"
         aria-label="Open the secret Brew Lab"
         title="brew?"
-        className="group absolute top-32 right-6 z-20 hidden lg:right-12 lg:block xl:right-[max(3rem,calc((100vw-72rem)/2+2rem))]"
+        className="group absolute top-28 right-4 z-20 hidden lg:right-10 lg:block xl:right-[max(2.5rem,calc((100vw-72rem)/2+1.5rem))]"
       >
         <HotCoffeeMug
           interactive
-          className="opacity-80 transition-opacity group-hover:opacity-100"
+          className="transition-transform group-hover:-translate-y-1"
         />
       </Link>
 
@@ -31,12 +40,24 @@ export function HeroSection() {
             AI Engineer · Pune, India
           </p>
 
-          <h1 className="mb-6 text-4xl leading-tight font-medium tracking-tight md:text-6xl md:leading-[1.1]">
-            Hi, I&apos;m{" "}
-            <span className="text-gradient">Ashley Mathias</span>
-            <br />
-            I design AI systems.
-          </h1>
+          <div className="@container relative mb-6 h-[200px] md:h-[248px]">
+            <motion.div
+              className="absolute inset-0 flex items-center"
+              initial={false}
+              animate={{
+                opacity: titleReady ? 0 : 1,
+                filter: titleReady ? "blur(7px)" : "blur(0px)",
+              }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h1 className="text-[clamp(2.5rem,9.2cqi,5.75rem)] leading-[1.12] font-medium tracking-tight">
+                Hi, I&apos;m <span className="text-gradient">Ashley Mathias</span>
+                <br />
+                I design AI systems.
+              </h1>
+            </motion.div>
+            <HeroTitle3D onReady={() => setTitleReady(true)} />
+          </div>
 
           <p className="mb-10 max-w-xl text-lg leading-relaxed text-muted">
             AI engineer specializing in RAG pipelines, multi-agent workflows,

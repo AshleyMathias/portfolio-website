@@ -268,7 +268,7 @@ export class NeuralWorkflowEngine {
   private build() {
     const { width, height } = this;
     const area = width * height;
-    const count = clamp(Math.round(area / 15000), 42, 132);
+    const count = clamp(Math.round(area / 28000), 28, 64);
 
     // jittered grid for even coverage
     const aspect = width / height;
